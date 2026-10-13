@@ -1,4 +1,15 @@
 import { Application, Graphics, type Ticker } from 'pixi.js';
+const ANGEL_HALF_W = 20;
+const ANGEL_HALF_H = 30;
+
+type ItemKind = 'blessing' | 'darkness';
+
+interface FallingItem {
+    sprite: Graphics;
+    kind: ItemKind;
+    speed: number;
+    radius: number;
+}
 
 export class Game {
     private app: Application | null = null;
@@ -6,6 +17,11 @@ export class Game {
     private angel: Graphics | null = null;
     private keys = new Set<string>();
     private readonly speed = 6;
+    private items: FallingItem[] = [];
+    private spawnTimer = 0;
+    private readonly spawnInterval = 45;
+    private score = 0;
+    private lives = 3;
 
     private onKeyDown = (e: KeyboardEvent): void => {
         this.keys.add(e.code);
@@ -17,7 +33,7 @@ export class Game {
 
     private createAngel(app: Application): void {
         const angel = new Graphics()
-            .rect(-20, -30, 40, 60)
+            .rect(-ANGEL_HALF_W, -ANGEL_HALF_H, ANGEL_HALF_W * 2, ANGEL_HALF_H * 2)
             .fill(0xf2d27a);
 
         angel.x = app.screen.width / 2;
@@ -34,10 +50,62 @@ export class Game {
 
         this.angel.x += dir * this.speed * ticker.deltaTime;
 
-        const half = 20;
+        const half = ANGEL_HALF_W;
         const maxX = this.app.screen.width - half;
         this.angel.x = Math.min(Math.max(this.angel.x, half), maxX);
-        this.angel.y = this.app.screen.height - 80;
+        this.angel.y = this.app.screen.height - 80;   
+        this.spawnTimer += ticker.deltaTime;
+
+        if (this.spawnTimer >= this.spawnInterval) {
+        this.spawnTimer = 0;
+        this.spawnItem();
+        }
+
+        for (let i = this.items.length - 1; i >= 0; i--) {
+        const item = this.items[i];
+        item.sprite.y += item.speed * ticker.deltaTime;
+
+        const hit =
+            Math.abs(item.sprite.x - this.angel.x) < ANGEL_HALF_W + item.radius &&
+            Math.abs(item.sprite.y - this.angel.y) < ANGEL_HALF_H + item.radius;
+
+            if (hit) {
+                if (item.kind === 'blessing') this.score += 10;
+                else this.lives -= 1;
+                console.log(`Pontos: ${this.score} | Vidas: ${this.lives}`);
+                this.removeItem(i);
+            } else if (item.sprite.y > this.app.screen.height + item.radius) {
+                this.removeItem(i);
+            }
+        }
+
+        // Debugging: Log the number of items currently in the game
+        console.log(this.items.length)
+    }
+
+    private spawnItem(): void {
+        if (!this.app) return;
+
+        const kind: ItemKind = Math.random() < 0.75 ? 'blessing' : 'darkness';
+        const radius = 14;
+        const sprite = new Graphics();
+
+        if (kind === 'blessing') {
+            sprite.star(0, 0, 5, radius, radius * 0.45).fill(0xffe9a8);
+        } else {
+            sprite.circle(0, 0, radius).fill(0x2a0a2e).stroke({ width: 3, color: 0x8b1e3f });
+        }
+
+        sprite.x = radius + Math.random() * (this.app.screen.width - radius * 2);
+        sprite.y = -radius;
+        this.app.stage.addChild(sprite);
+
+        this.items.push({ sprite, kind, radius, speed: 2.5 + Math.random() * 2.5 });
+    }
+
+    private removeItem(index: number): void {
+        const [item] = this.items.splice(index, 1);
+        item.sprite.destroy();
     }
 
     async start(container: HTMLElement): Promise<void> {
@@ -69,6 +137,7 @@ export class Game {
         window.removeEventListener('keydown', this.onKeyDown);
         window.removeEventListener('keyup', this.onKeyUp);
         this.app?.destroy(true, { children: true });
+        this.items = [];
         this.app = null;
         this.angel = null;
     }
