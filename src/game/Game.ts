@@ -29,8 +29,8 @@ export class Game {
         if (!this.app || !this.angel) return;
 
         let dir = 0;
-        if (this.keys.has('ArrowLeft') || this.keys.has('KeyA')) dir -= 1;
-        if (this.keys.has('ArrowRight') || this.keys.has('KeyD')) dir += 1;
+        if (this.keys.has('ArrowLeft') || this.keys.has('KeyA')) dir -= 3;
+        if (this.keys.has('ArrowRight') || this.keys.has('KeyD')) dir += 3;
 
         this.angel.x += dir * this.speed * ticker.deltaTime;
 
