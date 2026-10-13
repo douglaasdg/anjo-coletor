@@ -27,12 +27,17 @@ export class Game {
     private readonly speed = 6;
     private items: FallingItem[] = [];
     private spawnTimer = 0;
-    private readonly spawnInterval = 45;
+    private readonly spawnInterval = 2;
     private score = 0;
     private lives = 3;
     private status: GameStatus = 'menu';
     private readonly onChange: (snap: GameSnapshot) => void;
     private readonly onBlessing: () => void;
+    private pointerDir = 0;
+
+    getFps(): number {
+        return this.app?.ticker.FPS ?? 0;
+    }
 
     constructor(onChange: (snap: GameSnapshot) => void, onBlessing: () => void) {
         this.onChange = onChange;
@@ -67,27 +72,28 @@ export class Game {
         let dir = 0;
         if (this.keys.has('ArrowLeft') || this.keys.has('KeyA')) dir -= 3;
         if (this.keys.has('ArrowRight') || this.keys.has('KeyD')) dir += 3;
+        if (dir === 0) dir = this.pointerDir;
 
         this.angel.x += dir * this.speed * ticker.deltaTime;
 
         const half = ANGEL_HALF_W;
         const maxX = this.app.screen.width - half;
         this.angel.x = Math.min(Math.max(this.angel.x, half), maxX);
-        this.angel.y = this.app.screen.height - 80;        
+        this.angel.y = this.app.screen.height - 80;
         this.spawnTimer += ticker.deltaTime;
 
         if (this.spawnTimer >= this.spawnInterval) {
-        this.spawnTimer = 0;
-        this.spawnItem();
+            this.spawnTimer = 0;
+            this.spawnItem();
         }
 
         for (let i = this.items.length - 1; i >= 0; i--) {
-        const item = this.items[i];
-        item.sprite.y += item.speed * ticker.deltaTime;
+            const item = this.items[i];
+            item.sprite.y += item.speed * ticker.deltaTime;
 
-        const hit =
-            Math.abs(item.sprite.x - this.angel.x) < ANGEL_HALF_W + item.radius &&
-            Math.abs(item.sprite.y - this.angel.y) < ANGEL_HALF_H + item.radius;
+            const hit =
+                Math.abs(item.sprite.x - this.angel.x) < ANGEL_HALF_W + item.radius &&
+                Math.abs(item.sprite.y - this.angel.y) < ANGEL_HALF_H + item.radius;
 
             if (hit) {
                 if (item.kind === 'blessing') {
@@ -96,8 +102,8 @@ export class Game {
                 } else {
                     this.lives -= 1;
                 }
-                
-                
+
+
                 if (this.lives <= 0) this.status = 'gameover';
                 this.notify();
                 this.removeItem(i);
@@ -174,6 +180,16 @@ export class Game {
         window.addEventListener('keydown', this.onKeyDown);
         window.addEventListener('keyup', this.onKeyUp);
         app.ticker.add(this.update);
+        app.stage.eventMode = 'static';
+        app.stage.hitArea = app.screen;
+
+        const setDir = (x: number): void => {
+            this.pointerDir = x < app.screen.width / 2 ? -3 : 3;
+        };
+        app.stage.on('pointerdown', (e) => setDir(e.global.x));
+        app.stage.on('pointermove', (e) => { if (this.pointerDir !== 0) setDir(e.global.x); });
+        app.stage.on('pointerup', () => { this.pointerDir = 0; });
+        app.stage.on('pointerupoutside', () => { this.pointerDir = 0; });
     }
 
     destroy(): void {

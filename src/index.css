@@ -3,7 +3,7 @@ body {
   background: #0b0814;
   color: #f5efe0;
   font-family: system-ui,
-  sans-serif;
+    sans-serif;
 }
 
 .game-root {
@@ -16,6 +16,7 @@ body {
 .game-canvas {
   position: absolute;
   inset: 0;
+  touch-action: none;
 }
 
 .hud {
@@ -58,4 +59,26 @@ body {
   transform: translateX(-50%);
   font-size: 14px;
   opacity: 0.8;
+}
+
+.hud-fps {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  font: 600 13px monospace;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.hud-fps.good {
+  color: #7dff9a;
+}
+
+.hud-fps.ok {
+  color: #ffd27a;
+}
+
+.hud-fps.bad {
+  color: #ff6b6b;
 }

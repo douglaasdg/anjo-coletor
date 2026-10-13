@@ -11,6 +11,7 @@ export function GameCanvas() {
     const gameRef = useRef<Game | null>(null);
     const [snap, setSnap] = useState<GameSnapshot>(INITIAL);
     const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
+    const [fps, setFps] = useState<number | null>(null);
 
     useEffect(() => {
         const container = containerRef.current;
@@ -30,12 +31,23 @@ export function GameCanvas() {
         };
     }, []);
 
+    useEffect(() => {
+        if (!import.meta.env.DEV) return; // só em desenvolvimento
+
+        const id = window.setInterval(() => {
+            const value = gameRef.current?.getFps();
+            if (value) setFps(Math.round(value));
+        }, 500);
+
+        return () => window.clearInterval(id);
+    }, []);
+
     const handleStart = () => gameRef.current?.startRun();
 
     return (
         <div className="game-root">
             <div ref={containerRef} className="game-canvas" />
-            <Hud snap={snap} globalStats={globalStats} onStart={handleStart} />
+            <Hud snap={snap} globalStats={globalStats} fps={fps} onStart={handleStart} />
         </div>
     );
 }

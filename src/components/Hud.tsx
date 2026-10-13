@@ -5,19 +5,20 @@ interface HudProps {
     snap: GameSnapshot;
     onStart: () => void;
     globalStats: GlobalStats | null;
+    fps: number | null;
 }
 
-export function Hud({ snap, onStart, globalStats }: HudProps) {
+export function Hud({ snap, onStart, globalStats, fps }: HudProps) {
     const { status, score, lives } = snap;
 
     return (
         <div className="hud">
             <div className="hud-global">
                 {globalStats
-                ? `Bênçãos de todos: ${globalStats.total} · ${globalStats.players} anjo(s) online`
-                : 'Placar global offline'}
+                    ? `Bênçãos de todos: ${globalStats.total} · ${globalStats.players} anjo(s) online`
+                    : 'Placar global offline'}
             </div>
-            
+
             {status === 'playing' && (
                 <div className="hud-bar">
                     <span>Bênçãos: {score}</span>
@@ -40,7 +41,13 @@ export function Hud({ snap, onStart, globalStats }: HudProps) {
                     <button onClick={onStart}>Jogar de novo</button>
                 </div>
             )}
+
+            {fps !== null && (
+                <div className={`hud-fps ${fps >= 55 ? 'good' : fps >= 30 ? 'ok' : 'bad'}`}>
+                    {fps} FPS
+                </div>
+            )}
         </div>
-        
+
     );
 }
