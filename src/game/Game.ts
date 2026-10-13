@@ -27,7 +27,7 @@ export class Game {
     private readonly speed = 6;
     private items: FallingItem[] = [];
     private spawnTimer = 0;
-    private readonly spawnInterval = 2;
+    private readonly spawnInterval = 40;
     private score = 0;
     private lives = 3;
     private status: GameStatus = 'menu';
