@@ -32,9 +32,11 @@ export class Game {
     private lives = 3;
     private status: GameStatus = 'menu';
     private readonly onChange: (snap: GameSnapshot) => void;
-    
-    constructor(onChange: (snap: GameSnapshot) => void) {
+    private readonly onBlessing: () => void;
+
+    constructor(onChange: (snap: GameSnapshot) => void, onBlessing: () => void) {
         this.onChange = onChange;
+        this.onBlessing = onBlessing;
     }
 
     private notify(): void {
@@ -88,8 +90,12 @@ export class Game {
             Math.abs(item.sprite.y - this.angel.y) < ANGEL_HALF_H + item.radius;
 
             if (hit) {
-                if (item.kind === 'blessing') this.score += 10;
-                else this.lives -= 1;
+                if (item.kind === 'blessing') {
+                    this.score += 10;
+                    this.onBlessing();
+                } else {
+                    this.lives -= 1;
+                }
                 
                 
                 if (this.lives <= 0) this.status = 'gameover';

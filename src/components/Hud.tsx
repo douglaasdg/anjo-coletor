@@ -1,15 +1,23 @@
 import type { GameSnapshot } from '../game/Game';
+import type { GlobalStats } from '../net/ScoreSocket';
 
 interface HudProps {
     snap: GameSnapshot;
     onStart: () => void;
+    globalStats: GlobalStats | null;
 }
 
-export function Hud({ snap, onStart }: HudProps) {
+export function Hud({ snap, onStart, globalStats }: HudProps) {
     const { status, score, lives } = snap;
 
     return (
         <div className="hud">
+            <div className="hud-global">
+                {globalStats
+                ? `Bênçãos de todos: ${globalStats.total} · ${globalStats.players} anjo(s) online`
+                : 'Placar global offline'}
+            </div>
+            
             {status === 'playing' && (
                 <div className="hud-bar">
                     <span>Bênçãos: {score}</span>
@@ -33,5 +41,6 @@ export function Hud({ snap, onStart }: HudProps) {
                 </div>
             )}
         </div>
+        
     );
 }
