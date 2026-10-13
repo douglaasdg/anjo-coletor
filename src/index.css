@@ -1,3 +1,52 @@
 body {
   margin: 0;
+  background: #0b0814;
+  color: #f5efe0;
+  font-family: system-ui,
+  sans-serif;
+}
+
+.game-root {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.game-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.hud {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.hud-bar {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 20px;
+}
+
+.hud-panel {
+  pointer-events: auto;
+  text-align: center;
+  padding: 24px 32px;
+  border-radius: 12px;
+  background: rgba(11, 8, 20, 0.85);
+  border: 1px solid rgba(242, 210, 122, 0.35);
+}
+
+.hud-panel button {
+  font-size: 18px;
+  padding: 10px 24px;
+  cursor: pointer;
 }

@@ -11,6 +11,14 @@ interface FallingItem {
     radius: number;
 }
 
+export type GameStatus = 'menu' | 'playing' | 'gameover';
+
+export interface GameSnapshot {
+    status: GameStatus;
+    score: number;
+    lives: number;
+}
+
 export class Game {
     private app: Application | null = null;
     private destroyed = false;
@@ -22,6 +30,16 @@ export class Game {
     private readonly spawnInterval = 45;
     private score = 0;
     private lives = 3;
+    private status: GameStatus = 'menu';
+    private readonly onChange: (snap: GameSnapshot) => void;
+    
+    constructor(onChange: (snap: GameSnapshot) => void) {
+        this.onChange = onChange;
+    }
+
+    private notify(): void {
+        this.onChange({ status: this.status, score: this.score, lives: this.lives });
+    }
 
     private onKeyDown = (e: KeyboardEvent): void => {
         this.keys.add(e.code);
@@ -53,7 +71,7 @@ export class Game {
         const half = ANGEL_HALF_W;
         const maxX = this.app.screen.width - half;
         this.angel.x = Math.min(Math.max(this.angel.x, half), maxX);
-        this.angel.y = this.app.screen.height - 80;   
+        this.angel.y = this.app.screen.height - 80;        
         this.spawnTimer += ticker.deltaTime;
 
         if (this.spawnTimer >= this.spawnInterval) {
@@ -72,12 +90,18 @@ export class Game {
             if (hit) {
                 if (item.kind === 'blessing') this.score += 10;
                 else this.lives -= 1;
-                console.log(`Pontos: ${this.score} | Vidas: ${this.lives}`);
+                
+                
+                if (this.lives <= 0) this.status = 'gameover';
+                this.notify();
                 this.removeItem(i);
+
             } else if (item.sprite.y > this.app.screen.height + item.radius) {
                 this.removeItem(i);
             }
         }
+
+        if (this.status !== 'playing') return;
 
         // Debugging: Log the number of items currently in the game
         console.log(this.items.length)
@@ -106,6 +130,20 @@ export class Game {
     private removeItem(index: number): void {
         const [item] = this.items.splice(index, 1);
         item.sprite.destroy();
+    }
+
+    startRun(): void {
+        if (!this.app || !this.angel) return;
+
+        for (const item of this.items) item.sprite.destroy();
+        this.items = [];
+        this.score = 0;
+        this.lives = 3;
+        this.spawnTimer = 0;
+        this.angel.x = this.app.screen.width / 2;
+
+        this.status = 'playing';
+        this.notify();
     }
 
     async start(container: HTMLElement): Promise<void> {

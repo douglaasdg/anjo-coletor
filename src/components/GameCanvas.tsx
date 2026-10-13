@@ -1,18 +1,34 @@
-import { useEffect, useRef } from "react";
-import { Game } from "../game/Game";
+import { useEffect, useRef, useState } from 'react';
+import { Game, type GameSnapshot } from '../game/Game';
+import { Hud } from './Hud';
+
+const INITIAL: GameSnapshot = { status: 'menu', score: 0, lives: 3 };
 
 export function GameCanvas() {
     const containerRef = useRef<HTMLDivElement>(null);
+    const gameRef = useRef<Game | null>(null);
+    const [snap, setSnap] = useState<GameSnapshot>(INITIAL);
 
     useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
 
-        const game = new Game();
-        game.start(container);
+        const game = new Game(setSnap);
+        gameRef.current = game;
+        void game.start(container);
 
-        return () => game.destroy();
+        return () => {
+            game.destroy();
+            gameRef.current = null;
+        };
     }, []);
 
-    return <div ref={containerRef} style={{ width: '100%', height: '100vh' }} />;
+    const handleStart = () => gameRef.current?.startRun();
+
+    return (
+        <div className="game-root">
+            <div ref={containerRef} className="game-canvas" />
+            <Hud snap={snap} onStart={handleStart} />
+        </div>
+    );
 }
